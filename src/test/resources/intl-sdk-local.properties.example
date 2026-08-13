@@ -1,0 +1,32 @@
+# 复制为 intl-sdk-local.properties 后填写；实际文件已被 .gitignore 忽略，禁止提交真实凭据。
+# test 表示测试环境，production 表示生产环境。URL 必须使用平台实际提供的 HTTPS 接口域名，不能包含 /intl/v1。
+environment=test
+apiBaseUrl=
+apiKey=
+apiSecret=
+
+# 仅用于运行前人工核对，国际接口通过 API Key 识别商户，不发送 merchantNo。
+merchantNo=
+# 余额查询可选筛选；留空表示查询当前商户全部 ACTIVE 国家币种账户。
+country=
+currency=
+
+# 所有创建操作默认关闭；开启时必须把 writeConfirmedBaseUrl 设置为与 apiBaseUrl 完全相同的目标地址。
+# 生产环境的任何调用还必须显式设置 allowProduction=true。
+enableWrites=false
+writeConfirmedBaseUrl=
+allowProduction=false
+
+# 收款创建/查单资料。merchantOrderNo 必须在发请求前保存，并使用平台实际开通的 productCode。
+paymentMerchantOrderNo=
+paymentProductCode=
+paymentAmount=
+paymentOrderDescription=SDK local integration test
+
+# 代付创建/查单资料。账号保持字符串，禁止填入未获准使用的生产收款资料。
+payoutMerchantOrderNo=
+payoutProductCode=
+payoutAmount=
+recipientBankCode=
+recipientAccountNo=
+recipientAccountName=

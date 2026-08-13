@@ -1,0 +1,24 @@
+# Maven build output
+target/
+
+# Local IDE and operating-system files
+.idea/
+.vscode/
+.settings/
+.classpath
+.project
+*.iml
+.DS_Store
+
+# Local integration credentials and environment files
+src/test/resources/intl-sdk-local.properties
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Local logs
+*.log

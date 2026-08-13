@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Java 8 build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Java 8
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          distribution: temurin
+          java-version: '8'
+          cache: maven
+
+      - name: Build release artifacts
+        run: mvn -B -ntp clean verify
+
+      - name: Verify required artifacts
+        run: |
+          set -euo pipefail
+          final_name="$(mvn -B -ntp help:evaluate -Dexpression=project.build.finalName -q -DforceStdout)"
+          required_files=(
+            "target/${final_name}.jar"
+            "target/${final_name}-sources.jar"
+            "target/${final_name}-javadoc.jar"
+            "target/${final_name}-cyclonedx.json"
+            "target/${final_name}-cyclonedx.xml"
+            "target/checksums/${final_name}.jar.sha256"
+            "target/checksums/${final_name}-sources.jar.sha256"
+            "target/checksums/${final_name}-javadoc.jar.sha256"
+            "target/checksums/${final_name}-cyclonedx.json.sha256"
+            "target/checksums/${final_name}-cyclonedx.xml.sha256"
+            "target/checksums/pom.xml.sha256"
+            "LICENSE"
+          )
+          for required_file in "${required_files[@]}"; do
+            test -s "${required_file}"
+          done
