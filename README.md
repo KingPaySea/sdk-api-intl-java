@@ -1,7 +1,7 @@
 # XPay 国际版 Java SDK
 
 该 SDK 面向服务端 Java 8+ 应用，严格实现接口版本 `1.0` 的开发者平台 `/intl/v1` 最终合同。
-当前 SDK 源码及发布制品版本为 `1.0.0`。它封装 5 类公开接口、
+当前 SDK 源码及发布制品版本为 `1.1.0`。它封装 5 类公开接口、
 lowerCamelCase 请求模型、五行请求签名、普通 API 响应验签和 Webhook 验签，不兼容旧 PH
 `method/version/data/sign` 协议。
 
@@ -11,19 +11,19 @@ lowerCamelCase 请求模型、五行请求签名、普通 API 响应验签和 We
 [`KingPaySea/sdk-api-intl-java` Releases](https://github.com/KingPaySea/sdk-api-intl-java/releases)。
 商户应下载带明确版本号的制品，不要直接使用 `main` 分支源码或覆盖本地同版本 JAR。
 
-以 `1.0.0` 为例，macOS/Linux 可执行：
+以 `1.1.0` 为例，macOS/Linux 可执行：
 
 ```bash
-curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.0.0/sdk-api-intl-java-1.0.0.jar
-curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.0.0/sdk-api-intl-java-1.0.0.jar.sha256
-curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.0.0/pom.xml
-curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.0.0/pom.xml.sha256
+curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.1.0/sdk-api-intl-java-1.1.0.jar
+curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.1.0/sdk-api-intl-java-1.1.0.jar.sha256
+curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.1.0/pom.xml
+curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.1.0/pom.xml.sha256
 
-shasum -a 256 -c sdk-api-intl-java-1.0.0.jar.sha256
+shasum -a 256 -c sdk-api-intl-java-1.1.0.jar.sha256
 shasum -a 256 -c pom.xml.sha256
 
 mvn -q org.apache.maven.plugins:maven-install-plugin:3.1.3:install-file \
-  -Dfile=sdk-api-intl-java-1.0.0.jar \
+  -Dfile=sdk-api-intl-java-1.1.0.jar \
   -DpomFile=pom.xml
 ```
 
@@ -33,11 +33,11 @@ mvn -q org.apache.maven.plugins:maven-install-plugin:3.1.3:install-file \
 <dependency>
   <groupId>com.xpay</groupId>
   <artifactId>sdk-api-intl-java</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 
-接口版本使用 `1.0`，Maven 制品按语义版本写为 `1.0.0`；两者表示同一份最终公开合同。
+接口版本继续使用 `1.0`，Maven 制品按语义版本写为 `1.1.0`；SDK 版本表示在同一公开合同上的向后兼容能力演进。
 
 `sdk-api-intl-java` 是普通薄 JAR，运行时依赖由随 Release 发布的 POM 声明，包括 OkHttp 和 Jackson。
 因此推荐使用上面的 `install-file + pom.xml` 方式，或由商户公司制品库管理员把同一组已校验资产上传到内部
@@ -99,16 +99,22 @@ System.out.println(response.bodyAsString());
 
 ```java
 import com.xpay.sdk.intl.model.Amount;
+import com.xpay.sdk.intl.model.Payer;
 import com.xpay.sdk.intl.model.PaymentOrderCreateRequest;
 
 Amount amount = new Amount();
 amount.value = "100.50"; // 字符串，不是 double 或 JSON number
+
+Payer payer = new Payer();
+payer.email = "payer@example.com"; // 孟加拉代收产品必填
+payer.phone = "+639171234567"; // 选填
 
 PaymentOrderCreateRequest request = new PaymentOrderCreateRequest();
 request.merchantOrderNo = "DEMO_PAY_202606010001";
 request.productCode = "PH_PHP_PAYMENT_QRPH_GCASH";
 request.amount = amount;
 request.orderDescription = "Virtual order";
+request.payer = payer;
 
 XPayIntlResponse created = client.createPaymentOrder(request);
 XPayIntlResponse queried =
@@ -227,7 +233,7 @@ Webhook 验签原文也是 `timestamp + "\n" + nonce + "\n" + rawBody + "\n"`。
 - 创建成功体的 `platOrderNo` 是核心交易系统真实平台订单号；不要按前缀猜测业务类型。
 - HTTP `4xx` / `5xx` 仅把 `error.code` 和 `error.message` 作为错误诊断，不得从错误体提取或伪造平台订单号。
 - 报障时提供环境、UTC 时间、商户号、`merchantOrderNo`、HTTP 状态、`Request-Id` 和 `error.code`；
-  不要提供 Secret、完整签名、完整请求 Body 或收款人完整账号。
+  不要提供 Secret、完整签名、完整请求 Body、完整付款人联系方式或收款人完整账号。
 
 ## 示例与验证
 
@@ -254,6 +260,8 @@ cp src/test/resources/intl-sdk-local.properties.example \
   src/test/resources/intl-sdk-local.properties
 ```
 
+孟加拉代收产品必须填写 `paymentPayerEmail`；`paymentPayerPhone` 为选填。
+
 实际凭据文件不得提交。创建操作还需在本地文件显式设置 `enableWrites=true`，并把
 `writeConfirmedBaseUrl` 设置为与本次 `apiBaseUrl` 完全相同的完整地址；切换环境 URL 后旧确认会立即失效。
 连接生产环境需另行设置 `allowProduction=true`。在 IDE 中直接运行上表任一类的 `main` 即可调用对应
@@ -273,7 +281,7 @@ mvn -q -DskipTests test-compile \
 创建工具不会生成或替换 `merchantOrderNo`，必须先把配置中的订单号持久化。已验签 HTTP `503` +
 `ORDER_RESULT_UNKNOWN`、网络异常或验签失败时，改用相同配置文件中的原订单号运行对应 query 操作。
 工具不自动重试；人工安全重试只能在有界查单后使用同一 `merchantOrderNo` 和原业务参数执行。工具只在终端输出 HTTP 状态、`Request-Id`、验签结果、订单号、订单状态及 `error.code` 等
-信息，并打印全部响应 Header 和完整 UTF-8 Body。响应可能包含订单或收款人信息，请勿直接分享终端输出。
+信息，并打印全部响应 Header 和完整 UTF-8 Body。响应可能包含订单、付款人摘要或收款人信息，请勿直接分享终端输出。
 
 从独立仓库根目录执行以下命令，可以使用 Java 8 编译 SDK、五个手工联调工具和 Quickstart，并生成与
 GitHub Release 相同的 main、sources、Javadoc、CycloneDX SBOM 和 SHA-256 资产。该命令不调用真实 API；
