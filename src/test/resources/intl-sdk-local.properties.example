@@ -22,6 +22,9 @@ paymentMerchantOrderNo=
 paymentProductCode=
 paymentAmount=
 paymentOrderDescription=SDK local integration test
+# 付款人联系方式。孟加拉代收产品必须填写 paymentPayerEmail；手机号选填。
+paymentPayerEmail=
+paymentPayerPhone=
 
 # 代付创建/查单资料。账号保持字符串，禁止填入未获准使用的生产收款资料。
 payoutMerchantOrderNo=

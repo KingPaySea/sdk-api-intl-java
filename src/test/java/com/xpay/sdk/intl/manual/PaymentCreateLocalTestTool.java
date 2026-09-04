@@ -6,6 +6,7 @@ import com.xpay.sdk.intl.XPayIntlClient;
 import com.xpay.sdk.intl.XPayIntlException;
 import com.xpay.sdk.intl.XPayIntlResponse;
 import com.xpay.sdk.intl.model.Amount;
+import com.xpay.sdk.intl.model.Payer;
 import com.xpay.sdk.intl.model.PaymentOrderCreateRequest;
 
 /**
@@ -42,6 +43,10 @@ public final class PaymentCreateLocalTestTool {
         request.productCode = keys.required("paymentProductCode");
         request.amount = amount;
         request.orderDescription = keys.required("paymentOrderDescription");
+        Payer payer = optionalPayer(keys);
+        if (payer != null) {
+            request.payer = payer;
+        }
 
         System.out.println("Persisted payment merchantOrderNo: " + merchantOrderNo);
         XPayIntlResponse response;
@@ -54,5 +59,17 @@ public final class PaymentCreateLocalTestTool {
         }
         IntlLocalTestSupport.printCreateResult("payment-create",
                 PaymentQueryLocalTestTool.class.getSimpleName(), merchantOrderNo, response);
+    }
+
+    private static Payer optionalPayer(Keys keys) {
+        String email = keys.optional("paymentPayerEmail", null);
+        String phone = keys.optional("paymentPayerPhone", null);
+        if (email == null && phone == null) {
+            return null;
+        }
+        Payer payer = new Payer();
+        payer.email = email;
+        payer.phone = phone;
+        return payer;
     }
 }

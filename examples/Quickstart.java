@@ -3,6 +3,7 @@ import com.xpay.sdk.intl.XPayIntlConfig;
 import com.xpay.sdk.intl.XPayIntlException;
 import com.xpay.sdk.intl.XPayIntlResponse;
 import com.xpay.sdk.intl.model.Amount;
+import com.xpay.sdk.intl.model.Payer;
 import com.xpay.sdk.intl.model.PaymentOrderCreateRequest;
 
 /**
@@ -10,7 +11,8 @@ import com.xpay.sdk.intl.model.PaymentOrderCreateRequest;
  * <p>
  * Base URL、API Key 和 API Secret 只从进程环境变量读取。默认仅查询余额；只有显式设置
  * {@code INTL_ENABLE_WRITES=true} 才创建收款订单。写操作会在 {@code INTL_API_BASE_URL} 指向的环境创建
- * 真实订单，运行前必须确认环境、产品编码和商户订单号。
+ * 真实订单，运行前必须确认环境、产品编码和商户订单号。孟加拉代收产品还必须通过
+ * {@code INTL_PAYMENT_PAYER_EMAIL} 提供付款人邮箱；{@code INTL_PAYMENT_PAYER_PHONE} 为选填。
  * </p>
  */
 public final class Quickstart {
@@ -23,7 +25,7 @@ public final class Quickstart {
      * <p>
      * 失败策略：环境变量缺失、HTTP 异常、响应验签失败或非 2xx 立即终止；SDK 不自动重试。已验签 HTTP 503
      * {@code ORDER_RESULT_UNKNOWN} 不包含平台订单号，调用方必须先使用原 {@code merchantOrderNo} 查单；
-     * 有界查询后的安全重试也必须使用同一单号和完全一致的请求。本示例不使用数据库事务、缓存或异步任务。
+     * 有界查询后的安全重试也必须使用同一单号和完全一致的请求。本示例不使用数据库事务、缓存、异步任务或并发请求。
      * </p>
      *
      * @param args 未使用，全部配置来自服务端环境变量
@@ -52,8 +54,24 @@ public final class Quickstart {
         request.productCode = requiredEnv("INTL_PAYMENT_PRODUCT_CODE");
         request.amount = amount;
         request.orderDescription = "SDK quickstart order";
+        Payer payer = optionalPayer();
+        if (payer != null) {
+            request.payer = payer;
+        }
 
         printSuccessful("payment_order", client.createPaymentOrder(request));
+    }
+
+    private static Payer optionalPayer() {
+        String email = optionalEnv("INTL_PAYMENT_PAYER_EMAIL");
+        String phone = optionalEnv("INTL_PAYMENT_PAYER_PHONE");
+        if (email == null && phone == null) {
+            return null;
+        }
+        Payer payer = new Payer();
+        payer.email = email;
+        payer.phone = phone;
+        return payer;
     }
 
     private static void printSuccessful(String operation, XPayIntlResponse response) {

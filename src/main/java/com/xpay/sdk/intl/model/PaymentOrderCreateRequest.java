@@ -26,10 +26,14 @@ public class PaymentOrderCreateRequest {
     /** 商户侧订单或商品描述，不能为空，最长 128 字符；不得包含敏感数据。 */
     public String orderDescription;
 
+    /** 付款人联系方式；孟加拉代收产品要求提供邮箱，响应和通知可返回付款人摘要，手机号只返回后四位。 */
+    public Payer payer;
+
     /**
      * 可选商户关联数据，允许为空，最多 20 个 lowerCamelCase 字符串键值；不参与幂等、路由、清算或风控。
-     * 禁止放入 API/Webhook 密钥、签名、认证 Token、银行卡号、完整收款账号等敏感信息；幂等重复请求只返回
-     * 首次受理请求保存的不可变快照，后续请求不会合并或覆盖。
+     * 禁止放入 API/Webhook 密钥、签名、认证 Token、银行卡号、完整收款账号、手机号、邮箱等敏感信息；
+     * 代收付款人联系方式应使用 {@link #payer}；幂等重复请求只返回首次受理请求保存的不可变快照，后续请求
+     * 不会合并或覆盖。
      */
     public Map<String, String> customData;
 }
