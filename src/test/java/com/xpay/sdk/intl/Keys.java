@@ -141,6 +141,19 @@ public final class Keys {
     }
 
     /**
+     * 读取参与签名和幂等的可选原文属性，避免自动 trim 改变成功返回地址。
+     * <p>仅同步读取内存中的 Properties 解析值，不做 URL 归一化；非法值由服务端 fail-close 拒绝。
+     * 无网络、数据库事务、缓存、异步或并发写操作。</p>
+     *
+     * @param name 属性名
+     * @return 原文属性值；缺失或零长度表示未配置，返回 null；空白字符不会被静默删除
+     */
+    public String optionalLiteral(String name) {
+        String value = properties.getProperty(name);
+        return value == null || value.isEmpty() ? null : value;
+    }
+
+    /**
      * 生成不包含 API Key、API Secret 或签名的联调目标摘要。
      *
      * @return 环境、Base URL、核对用商户号及配置文件路径组成的安全摘要

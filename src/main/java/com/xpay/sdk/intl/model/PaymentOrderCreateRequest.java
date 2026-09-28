@@ -13,7 +13,6 @@ import java.util.Map;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PaymentOrderCreateRequest {
-
     /** 商户订单号，同一商户下用于创建幂等和查单，长度 5 至 32，不能为空。 */
     public String merchantOrderNo;
 
@@ -25,6 +24,14 @@ public class PaymentOrderCreateRequest {
 
     /** 商户侧订单或商品描述，不能为空，最长 128 字符；不得包含敏感数据。 */
     public String orderDescription;
+
+    /**
+     * 支付成功后返回商户的可选 HTTPS 地址，最多 2048 ASCII 字节，无需提前登记域名；null 时不序列化。
+     * 原文参与请求签名和业务幂等，受理后不可增加、修改或删除；平台不追加状态或订单参数。纯 QRPH 不支持。
+     * 服务端负责地址及产品能力的 fail-close 校验；SDK 不裁剪、编码或归一化。浏览器返回不是支付凭证，
+     * 履约必须依赖服务端查单或验签通知。
+     */
+    public String successUrl;
 
     /** 付款人联系方式；孟加拉代收产品要求提供邮箱，响应和通知可返回付款人摘要，手机号只返回后四位。 */
     public Payer payer;

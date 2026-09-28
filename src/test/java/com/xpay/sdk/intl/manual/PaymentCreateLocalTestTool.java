@@ -16,6 +16,7 @@ import com.xpay.sdk.intl.model.PaymentOrderCreateRequest;
  * {@code paymentMerchantOrderNo}，并显式通过写操作及目标环境门禁。本工具绝不自动重试；创建结果未知时，
  * 只提示使用原商户订单号运行 {@link PaymentQueryLocalTestTool} 查单。仅在有界退避查单仍不存在后，才可由
  * 操作员串行重放同一商户订单号、参数完全一致的原创建请求，不得换号或并发重试。
+ * {@code paymentSuccessUrl} 仅用于已开通的收银台产品，按配置原文发送，重试时不得增加、删除或修改。
  * </p>
  */
 public final class PaymentCreateLocalTestTool {
@@ -25,6 +26,7 @@ public final class PaymentCreateLocalTestTool {
 
     /**
      * 调用 {@code POST /intl/v1/payment/order/create}。
+     * <p>一次同步调用，不开启本地事务、缓存或异步任务；配置门禁失败时 fail-close，禁止并发重放同一订单。</p>
      *
      * @param args 可选的 UTF-8 {@code intl-sdk-local.properties} 文件路径
      * @throws IllegalArgumentException 参数数量、请求模型或 SDK 配置不合法时抛出
@@ -43,6 +45,7 @@ public final class PaymentCreateLocalTestTool {
         request.productCode = keys.required("paymentProductCode");
         request.amount = amount;
         request.orderDescription = keys.required("paymentOrderDescription");
+        request.successUrl = keys.optionalLiteral("paymentSuccessUrl");
         Payer payer = optionalPayer(keys);
         if (payer != null) {
             request.payer = payer;

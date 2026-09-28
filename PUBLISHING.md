@@ -57,8 +57,8 @@ git pull --ff-only
 mvn -B -ntp clean verify
 git status --short
 
-git tag -a v1.1.0 -m "XPay International Java SDK 1.1.0"
-git push origin v1.1.0
+git tag -a v1.2.0 -m "XPay International Java SDK 1.2.0"
+git push origin v1.2.0
 ```
 
 标签推送后，`.github/workflows/release.yml` 会再次使用 Java 8 构建，只有标签与 POM 版本完全一致时才创建
