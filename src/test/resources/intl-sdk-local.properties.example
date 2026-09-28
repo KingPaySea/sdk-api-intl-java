@@ -22,6 +22,9 @@ paymentMerchantOrderNo=
 paymentProductCode=
 paymentAmount=
 paymentOrderDescription=SDK local integration test
+# 可选成功返回地址：仅已开通的收银台产品支持，无需提前登记域名；纯 QRPH 不支持。
+# 留空不发送；非空按 Properties 解析后的原文发送，不 trim、不编码；同号重试必须保持原值。
+paymentSuccessUrl=
 # 付款人联系方式。孟加拉代收产品必须填写 paymentPayerEmail；手机号选填。
 paymentPayerEmail=
 paymentPayerPhone=

@@ -1,43 +1,45 @@
 # XPay 国际版 Java SDK
 
 该 SDK 面向服务端 Java 8+ 应用，严格实现接口版本 `1.0` 的开发者平台 `/intl/v1` 最终合同。
-当前 SDK 源码及发布制品版本为 `1.1.0`。它封装 5 类公开接口、
+当前 SDK 源码版本为 `1.2.0`，新增可选代收成功返回地址 `successUrl`，发布状态见 [CHANGELOG](CHANGELOG.md)。它封装 5 类公开接口、
 lowerCamelCase 请求模型、五行请求签名、普通 API 响应验签和 Webhook 验签，不兼容旧 PH
 `method/version/data/sign` 协议。
 
-## 从 GitHub Release 下载
+## 获取与安装
 
-正式版本统一发布在
-[`KingPaySea/sdk-api-intl-java` Releases](https://github.com/KingPaySea/sdk-api-intl-java/releases)。
-商户应下载带明确版本号的制品，不要直接使用 `main` 分支源码或覆盖本地同版本 JAR。
+正式版本为 [`v1.2.0`](https://github.com/KingPaySea/sdk-api-intl-java/releases/tag/v1.2.0)（2026-09-29）。
+从该 Release 下载 JAR、POM 和 SHA-256 文件，配套示例见
+[`v1.2.0` 源码标签](https://github.com/KingPaySea/sdk-api-intl-java/tree/v1.2.0)。
+旧版 `1.1.0` 不包含类型化 `successUrl` 字段，不能用于编译新示例；已发布版本保留，不覆盖原文件。
 
-以 `1.1.0` 为例，macOS/Linux 可执行：
+下载本版本的 JAR、POM 和 SHA-256 文件后，在同一目录校验与安装：
 
 ```bash
-curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.1.0/sdk-api-intl-java-1.1.0.jar
-curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.1.0/sdk-api-intl-java-1.1.0.jar.sha256
-curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.1.0/pom.xml
-curl -fLO https://github.com/KingPaySea/sdk-api-intl-java/releases/download/v1.1.0/pom.xml.sha256
-
-shasum -a 256 -c sdk-api-intl-java-1.1.0.jar.sha256
+shasum -a 256 -c sdk-api-intl-java-1.2.0.jar.sha256
 shasum -a 256 -c pom.xml.sha256
-
 mvn -q org.apache.maven.plugins:maven-install-plugin:3.1.3:install-file \
-  -Dfile=sdk-api-intl-java-1.1.0.jar \
-  -DpomFile=pom.xml
+  -Dfile=sdk-api-intl-java-1.2.0.jar -DpomFile=pom.xml
 ```
 
-校验通过并安装到本机 Maven 仓库后，在业务项目中声明：
+从源码构建时，在 SDK 模块目录执行 `mvn -B -ntp clean verify`，然后执行
+`node scripts/prepare-release.mjs`。后者只收集已校验制品与公开示例至 `target/release`，不复制本地凭据。
+在 `target/release` 中可使用上述校验与安装命令。开发者平台正式构建的 `SDK_RELEASE_DIR` 必须使用
+从 GitHub Release 下载且与固定摘要一致的资产；本地重建文件不保证与正式制品逐字节相同。
+
+历史版本保留在 [`KingPaySea/sdk-api-intl-java` Releases](https://github.com/KingPaySea/sdk-api-intl-java/releases)，
+旧版不能用于编译含 `successUrl` 的新示例。
+
+新版 `1.2.0` 校验通过并安装到本机 Maven 仓库后，在业务项目中声明：
 
 ```xml
 <dependency>
   <groupId>com.xpay</groupId>
   <artifactId>sdk-api-intl-java</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 
-接口版本继续使用 `1.0`，Maven 制品按语义版本写为 `1.1.0`；SDK 版本表示在同一公开合同上的向后兼容能力演进。
+接口版本继续使用 `1.0`，Maven 制品按语义版本写为 `1.2.0`；SDK 版本表示在同一公开合同上的向后兼容能力演进。
 
 `sdk-api-intl-java` 是普通薄 JAR，运行时依赖由随 Release 发布的 POM 声明，包括 OkHttp 和 Jackson。
 因此推荐使用上面的 `install-file + pom.xml` 方式，或由商户公司制品库管理员把同一组已校验资产上传到内部
@@ -114,6 +116,8 @@ request.merchantOrderNo = "DEMO_PAY_202606010001";
 request.productCode = "PH_PHP_PAYMENT_QRPH_GCASH";
 request.amount = amount;
 request.orderDescription = "Virtual order";
+// 可选：仅平台已开通成功返回能力的收银台产品可用；无需提前登记域名。
+request.successUrl = "https://shop.example/pay/result?reference=DEMO_PAY_202606010001#done";
 request.payer = payer;
 
 XPayIntlResponse created = client.createPaymentOrder(request);
@@ -126,6 +130,26 @@ provider、渠道号、银行映射等内部参数。创建接口返回 HTTP `20
 订单的真实 `platOrderNo`；该字段是不透明对账标识，不使用 `pay_` / `po_` 接口资源前缀。HTTP
 `4xx` / `5xx` 只返回 `error` 对象，不包含 `platOrderNo`。HTTP `200` 仍不代表订单已达终态，订单
 结果以 Body `status`、查单接口或 Webhook 为准。
+
+### 支付成功返回商户
+
+`successUrl` 位于请求根对象，与金额等字段一起进入 SDK 的五行签名，不能放入 `customData`。
+null 时不序列化；SDK 不裁剪或重新编码地址，空字符串会交由服务端拒绝。信任已鉴权请求提供的目标，无需提前登记域名，地址
+最长 2048 ASCII 字节，只允许省略端口或 443。地址可包含 query 和 fragment，平台不追加订单或状态参数。
+
+仅已开通返回能力的收银台产品支持；纯 QRPH API 不支持。可信成功页提供返回按钮及前台可见的 3 秒倒计时，
+渠道收银台先返回平台结果页，平台确认支付及既有资金流程成功后才允许返回商户。浏览器跳转、返回参数或 HTTP 200
+均不是支付凭证，商户必须依赖服务端查单或已验签 Webhook 并幂等履约。
+
+首次受理后，同一 `merchantOrderNo` 的地址不可增加、删除或修改。出现未知结果时先查原单；仅在连续查询仍无订单后
+使用同号同参重试，不得因为跳转未发生而重新下单。
+
+| 情况 | 国际接口结果 |
+| --- | --- |
+| 地址格式非法 | HTTP 400，`FIELD_INVALID`，`param=successUrl` |
+| 纯 QRPH 传非 null 地址 | HTTP 400，`FIELD_NOT_SUPPORTED`，`param=successUrl` |
+| 同号重试改变、删除或增加地址 | HTTP 409，`MERCHANT_ORDER_NO_CONFLICT`，`param=merchantOrderNo` |
+| 无法确定原订单结果 | HTTP 503，`ORDER_RESULT_UNKNOWN`；按原单号查询 |
 
 ## 创建和查询代付订单
 
@@ -239,6 +263,7 @@ Webhook 验签原文也是 `timestamp + "\n" + nonce + "\n" + rawBody + "\n"`。
 
 完整示例见 [`examples/Quickstart.java`](examples/Quickstart.java)。它默认只查询余额，只有显式设置
 `INTL_ENABLE_WRITES=true` 才创建订单。
+可选 `INTL_PAYMENT_SUCCESS_URL` 仅用于支持成功返回能力的收银台产品，留空或未设置不启用。
 
 仓库还提供与老网关本地联调用途一致、但不在源码保存凭据的五个独立手工联调类：
 
@@ -261,6 +286,7 @@ cp src/test/resources/intl-sdk-local.properties.example \
 ```
 
 孟加拉代收产品必须填写 `paymentPayerEmail`；`paymentPayerPhone` 为选填。
+可选 `paymentSuccessUrl` 填写商户自己的 HTTPS 成功返回地址，无需提前登记；空值不发送，非空值按 Properties 解析后的原文发送。
 
 实际凭据文件不得提交。创建操作还需在本地文件显式设置 `enableWrites=true`，并把
 `writeConfirmedBaseUrl` 设置为与本次 `apiBaseUrl` 完全相同的完整地址；切换环境 URL 后旧确认会立即失效。
@@ -292,3 +318,9 @@ mvn -B -ntp clean verify
 ```
 
 SDK 维护者的首次建库、分支保护、标签和后续同步步骤见 [`PUBLISHING.md`](PUBLISHING.md)。
+
+### 平台订单号字符串兼容
+
+`platOrderNo` 保持长度 1–32 的字符串合同。24 位示例 `PHI112606010000000001001` 与历史 `3002260601000001001` 均可原样保存和查单；不要转换为 `long`、`double` 或按前缀选择接口、环境、账务体系。Java SDK 保留已验签原始响应体；Webhook 验签后也应读取为字符串。Excel 导出使用文本单元格。
+
+Platform order numbers remain opaque strings (1–32 characters). Preserve both 24-character and historical values exactly. Do not parse them as numbers or use their prefix for routing, environment selection or authorization. Verify signed response/Webhook bodies before processing, and write spreadsheet identifiers as text cells.

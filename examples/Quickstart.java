@@ -13,6 +13,7 @@ import com.xpay.sdk.intl.model.PaymentOrderCreateRequest;
  * {@code INTL_ENABLE_WRITES=true} 才创建收款订单。写操作会在 {@code INTL_API_BASE_URL} 指向的环境创建
  * 真实订单，运行前必须确认环境、产品编码和商户订单号。孟加拉代收产品还必须通过
  * {@code INTL_PAYMENT_PAYER_EMAIL} 提供付款人邮箱；{@code INTL_PAYMENT_PAYER_PHONE} 为选填。
+ * 已开通的收银台产品可通过 {@code INTL_PAYMENT_SUCCESS_URL} 传入商户指定的 HTTPS 成功返回地址，无需提前登记域名；原文不可在重试时改变。
  * </p>
  */
 public final class Quickstart {
@@ -54,6 +55,9 @@ public final class Quickstart {
         request.productCode = requiredEnv("INTL_PAYMENT_PRODUCT_CODE");
         request.amount = amount;
         request.orderDescription = "SDK quickstart order";
+        // 成功地址参与业务幂等，禁止使用会 trim 或重新编码的通用配置读取方法。
+        String successUrl = System.getenv("INTL_PAYMENT_SUCCESS_URL");
+        request.successUrl = successUrl == null || successUrl.isEmpty() ? null : successUrl;
         Payer payer = optionalPayer();
         if (payer != null) {
             request.payer = payer;
