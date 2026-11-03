@@ -31,6 +31,7 @@ public final class PayoutCreateLocalTestTool {
      * @throws IllegalStateException 配置、生产环境或写操作门禁不满足时抛出
      * @throws XPayIntlException 创建结果可能未知时抛出；必须先使用原订单号查单，本工具不自动重试；有界查单仍不存在时，
      *         仅允许操作员串行重放同一订单号且参数完全一致的原请求
+     * @apiNote recipientBankCode与recipientAccountType恰配其一；本工具同步调用一次，不持有本地事务、缓存或并发调度。
      */
     public static void main(String[] args) {
         Keys keys = IntlLocalTestSupport.loadKeys(args, "payout-create", true);
@@ -39,7 +40,11 @@ public final class PayoutCreateLocalTestTool {
         Amount amount = new Amount();
         amount.value = keys.required("payoutAmount");
         Recipient recipient = new Recipient();
-        recipient.bankCode = keys.required("recipientBankCode");
+        recipient.bankCode = keys.optional("recipientBankCode", null);
+        recipient.accountType = keys.optional("recipientAccountType", null);
+        if ((recipient.bankCode == null) == (recipient.accountType == null)) {
+            throw new IllegalArgumentException("Configure exactly one of recipientBankCode and recipientAccountType.");
+        }
         recipient.accountNo = keys.required("recipientAccountNo");
         recipient.accountName = keys.required("recipientAccountName");
         PayoutCreateRequest request = new PayoutCreateRequest();

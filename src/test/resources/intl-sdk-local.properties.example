@@ -33,6 +33,9 @@ paymentPayerPhone=
 payoutMerchantOrderNo=
 payoutProductCode=
 payoutAmount=
+# 银行代付填写 recipientBankCode；巴西 PIX 改填 recipientAccountType，两者必须恰填其一。
 recipientBankCode=
+# PIX 类型：CPF/CNPJ/PHONE/EMAIL/EVP；accountNo 填相应 PIX Key，银行代付留空。
+recipientAccountType=
 recipientAccountNo=
 recipientAccountName=

@@ -1,24 +1,24 @@
 # XPay 国际版 Java SDK
 
 该 SDK 面向服务端 Java 8+ 应用，严格实现接口版本 `1.0` 的开发者平台 `/intl/v1` 最终合同。
-当前 SDK 源码版本为 `1.2.0`，新增可选代收成功返回地址 `successUrl`，发布状态见 [CHANGELOG](CHANGELOG.md)。它封装 5 类公开接口、
+当前 SDK 源码版本为 `1.2.1`，新增巴西 PIX 收款人 `accountType` 支持，保留代收 `successUrl`，发布状态见 [CHANGELOG](CHANGELOG.md)。它封装 5 类公开接口、
 lowerCamelCase 请求模型、五行请求签名、普通 API 响应验签和 Webhook 验签，不兼容旧 PH
 `method/version/data/sign` 协议。
 
 ## 获取与安装
 
-正式版本为 [`v1.2.0`](https://github.com/KingPaySea/sdk-api-intl-java/releases/tag/v1.2.0)（2026-09-29）。
+正式版本为 [`v1.2.1`](https://github.com/KingPaySea/sdk-api-intl-java/releases/tag/v1.2.1)（2026-11-04）。
 从该 Release 下载 JAR、POM 和 SHA-256 文件，配套示例见
-[`v1.2.0` 源码标签](https://github.com/KingPaySea/sdk-api-intl-java/tree/v1.2.0)。
+[`v1.2.1` 源码标签](https://github.com/KingPaySea/sdk-api-intl-java/tree/v1.2.1)。
 旧版 `1.1.0` 不包含类型化 `successUrl` 字段，不能用于编译新示例；已发布版本保留，不覆盖原文件。
 
 下载本版本的 JAR、POM 和 SHA-256 文件后，在同一目录校验与安装：
 
 ```bash
-shasum -a 256 -c sdk-api-intl-java-1.2.0.jar.sha256
+shasum -a 256 -c sdk-api-intl-java-1.2.1.jar.sha256
 shasum -a 256 -c pom.xml.sha256
 mvn -q org.apache.maven.plugins:maven-install-plugin:3.1.3:install-file \
-  -Dfile=sdk-api-intl-java-1.2.0.jar -DpomFile=pom.xml
+  -Dfile=sdk-api-intl-java-1.2.1.jar -DpomFile=pom.xml
 ```
 
 从源码构建时，在 SDK 模块目录执行 `mvn -B -ntp clean verify`，然后执行
@@ -29,17 +29,17 @@ mvn -q org.apache.maven.plugins:maven-install-plugin:3.1.3:install-file \
 历史版本保留在 [`KingPaySea/sdk-api-intl-java` Releases](https://github.com/KingPaySea/sdk-api-intl-java/releases)，
 旧版不能用于编译含 `successUrl` 的新示例。
 
-新版 `1.2.0` 校验通过并安装到本机 Maven 仓库后，在业务项目中声明：
+新版 `1.2.1` 校验通过并安装到本机 Maven 仓库后，在业务项目中声明：
 
 ```xml
 <dependency>
   <groupId>com.xpay</groupId>
   <artifactId>sdk-api-intl-java</artifactId>
-  <version>1.2.0</version>
+  <version>1.2.1</version>
 </dependency>
 ```
 
-接口版本继续使用 `1.0`，Maven 制品按语义版本写为 `1.2.0`；SDK 版本表示在同一公开合同上的向后兼容能力演进。
+接口版本继续使用 `1.0`，Maven 制品按语义版本写为 `1.2.1`；SDK 版本表示在同一公开合同上的向后兼容能力演进。
 
 `sdk-api-intl-java` 是普通薄 JAR，运行时依赖由随 Release 发布的 POM 声明，包括 OkHttp 和 Jackson。
 因此推荐使用上面的 `install-file + pom.xml` 方式，或由商户公司制品库管理员把同一组已校验资产上传到内部
@@ -176,6 +176,11 @@ XPayIntlResponse created = client.createPayout(request);
 XPayIntlResponse queried =
     client.getPayoutByMerchantOrderNo(request.merchantOrderNo);
 ```
+
+巴西 `BR_BRL_PAYOUT_INSTANT` 使用 PIX：不传 `bankCode`，设置 `recipient.accountType` 为
+`CPF`、`CNPJ`、`PHONE`、`EMAIL` 或 `EVP`，并把对应 PIX Key 原样填入字符串 `accountNo`。
+其他银行代付仍使用 `bankCode`，不传 `accountType`。手工工具通过 `recipientAccountType` / `recipientBankCode`
+配置，必须恰配其一；产品权限、字段格式及收款人最终校验由服务端 fail-close 执行。
 
 代付受理不代表资金已到达收款账户。已验签 HTTP `200` 中的 `platOrderNo` 是真实核心平台订单号；
 `4xx` / `5xx` 错误体不包含该字段。平台明确分类的未知下单结果统一为已验签 HTTP `503` +
