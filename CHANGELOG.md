@@ -3,6 +3,13 @@
 本文件记录 `com.xpay:sdk-api-intl-java` 的公开行为变化。已发布制品不可覆盖；修复必须发布新的
 Semantic Versioning 版本。
 
+## 1.2.1 - 2026-11-04
+
+- 收款人模型增加 `accountType`，支持巴西 PIX 的 CPF/CNPJ/PHONE/EMAIL/EVP 类型；`accountNo` 承载对应 PIX Key。
+- 代付手工工具支持 `recipientAccountType`，与 `recipientBankCode` 恰配其一；错误配置在发送请求前 fail-close。
+- 补齐 PIX 配置示例和兼容性回归测试；Quickstart 继续默认只读，沿用付款人和 successUrl 支持。
+- 保持 Java 8、接口版本 `1.0`、既有银行代付请求、签名验签及不自动重试行为不变；不修改服务端资金处理。
+
 ## 1.2.0 - 2026-09-29
 
 - 代收创建增加可选 `successUrl`，原文随 JSON Body 签名；null 不序列化，保持旧调用兼容。
@@ -38,4 +45,4 @@ Semantic Versioning 版本。
 ## 1.0-Release - 历史试用版
 
 - 早期商户联调制品，现已冻结，仅用于识别历史依赖。
-- 不覆盖、不重新发布，也不建议新项目继续使用；新接入统一使用当前正式版 SDK `1.2.0`。
+- 不覆盖、不重新发布，也不建议新项目继续使用；新接入统一使用当前正式版 SDK `1.2.1`。
